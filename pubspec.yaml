@@ -1,0 +1,54 @@
+name: testing_pet
+description: A new Flutter project.
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.5 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  kakao_flutter_sdk: ^1.7.0
+  provider: ^6.1.1
+  supabase_flutter: ^1.10.25
+  intl: ^0.18.1
+  permission_handler: ^11.0.1
+  image_picker: ^1.0.5
+  awesome_notifications: ^0.8.2
+  shared_preferences: ^2.2.2
+  record: ^5.0.1
+  audioplayers: ^5.2.1
+  simple_ripple_animation: ^0.0.8
+  flutter_svg: ^2.0.9
+  http: ^1.1.2
+  chat_gpt_sdk: ^2.2.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/bottom_bar_icon/chat.svg
+    - assets/images/bottom_bar_icon/chatbot.svg
+    - assets/images/bottom_bar_icon/dog_list.svg
+    - assets/images/bottom_bar_icon/user_profile.svg
+    - assets/images/bottom_bar_icon/mic.svg
+    - assets/images/bottom_bar_icon/color_chat.svg
+    - assets/images/bottom_bar_icon/color_dog_list.svg
+    - assets/images/bottom_bar_icon/color_user_profile.svg
+    - assets/images/bottom_bar_icon/color_mic.svg
+    - assets/images/record_images/animations_mic.gif
+    - assets/images/record_images/mic_void.png
+    - assets/images/login_images/kakao_logo.png
+    - assets/images/login_images/login_screen_image.png
+    - assets/images/profile_images/default_dog_profile.svg
+    - assets/images/profile_images/login_success.png
+
