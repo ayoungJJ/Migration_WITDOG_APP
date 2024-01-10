@@ -276,9 +276,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PetDetailScreen(
-                                  pet: _petList.length > 0
-                                      ? _petList[0].toMap()
-                                      : {}),
+                                pet: _petList.isNotEmpty ? _petList[index].toMap() : {},
+                                appUser: widget.appUser,
+                              ),
                             ),
                           );
                         },

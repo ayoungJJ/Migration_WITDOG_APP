@@ -45,6 +45,9 @@ flutter:
     - assets/images/bottom_bar_icon/color_dog_list.svg
     - assets/images/bottom_bar_icon/color_user_profile.svg
     - assets/images/bottom_bar_icon/color_mic.svg
+    - assets/images/bottom_bar_icon/white_chat.svg
+    - assets/images/bottom_bar_icon/white_video.svg
+    - assets/images/bottom_bar_icon/white_profile.svg
     - assets/images/record_images/animations_mic.gif
     - assets/images/record_images/mic_void.png
     - assets/images/login_images/kakao_logo.png
