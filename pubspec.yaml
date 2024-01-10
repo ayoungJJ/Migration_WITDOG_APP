@@ -26,6 +26,7 @@ dependencies:
   flutter_svg: ^2.0.9
   http: ^1.1.2
   chat_gpt_sdk: ^2.2.8
+  flutter_webrtc: ^0.9.47
 
 dev_dependencies:
   flutter_test:

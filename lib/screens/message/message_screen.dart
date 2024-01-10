@@ -11,7 +11,6 @@ class MessageScreen extends StatefulWidget {
   final String petId;
   final KakaoAppUser appUser;
 
-
   MessageScreen({Key? key, required this.petId, required this.appUser}) : super(key: key);
 
   @override
@@ -20,7 +19,22 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   final TextEditingController _messageController = TextEditingController();
+  late KakaoAppUser appUser;
+  late Stream<List<Message>> _messagesStream;
+
   Map<String, dynamic> _profileCache = {};
+
+  @override
+  void initState() {
+    final myUserId = widget.appUser.user_id;
+    _messagesStream = supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .order('created_at')
+        .map((maps) =>
+        maps.map((map) => Message.fromMap(map: map, myUserId: myUserId)).toList());
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +46,7 @@ class _MessageScreenState extends State<MessageScreen> {
         children: [
           Expanded(
             child: StreamBuilder<List<Message>>(
-              stream: () async* {
-                final response = await supabase
-                    .from('messages')
-                    .select()
-                    .eq('pet_id', widget.petId)
-                    .order('created_at', ascending: true);
-
-                print('streamMessage : ${response}');
-
-                final data = response as List<dynamic>;
-
-                print('streamData : ${data}');
-
-                yield data
-                    .map((item) =>
-                    Message.fromMap(map: item, myUserId: '1234'))
-                    .toList();
-              }(),
+              stream: _messagesStream,
               builder: (context, AsyncSnapshot<List<Message>> snapshot) {
                 print('snapshop ${snapshot}');
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -78,7 +75,6 @@ class _MessageScreenState extends State<MessageScreen> {
                   return const Center(child: Text('No data available'));
                 }
               },
-
             ),
           ),
           Padding(
@@ -120,6 +116,14 @@ class _MessageScreenState extends State<MessageScreen> {
 
     if (response != null && response.error != null) {
       print('메시지 전송 에러: ${response.error}');
+    } else {
+      // 메시지 전송 후에 스트림을 업데이트합니다.
+      _messagesStream = supabase
+          .from('messages')
+          .stream(primaryKey: ['id'])
+          .order('created_at')
+          .map((maps) =>
+          maps.map((map) => Message.fromMap(map: map, myUserId: widget.appUser.user_id)).toList());
     }
   }
 
@@ -170,5 +174,4 @@ class _MessageScreenState extends State<MessageScreen> {
       ),
     );
   }
-
 }

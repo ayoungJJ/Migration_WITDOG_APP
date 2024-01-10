@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/screens/message/message_screen.dart';
 
@@ -20,6 +21,9 @@ class PetDetailScreen extends StatefulWidget {
 class _PetDetailScreenState extends State<PetDetailScreen> {
 
   late Image backgroundImage;
+  late RTCVideoRenderer _localRenderer;
+  late RTCVideoRenderer _remoteRenderer;
+
 
 
   @override
@@ -29,6 +33,11 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
     String base64Image = widget.pet['pet_images'];
     List<int> bytes = base64.decode(base64Image);
     backgroundImage = Image.memory(Uint8List.fromList(bytes));
+
+    _localRenderer = RTCVideoRenderer();
+    _remoteRenderer = RTCVideoRenderer();
+
+
   }
 
   @override
@@ -43,6 +52,16 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
 
       // 임시로 '123'을 반환하도록 하였습니다. 실제로는 사용자가 선택한 반려동물의 petId를 반환해야 합니다.
       return '1234';
+    }
+    @override
+    void dispose() {
+      _localRenderer.dispose();
+      _remoteRenderer.dispose();
+    }
+
+    void initRenderers() async {
+      await _localRenderer.initialize();
+      await _remoteRenderer.initialize();
     }
 
 
