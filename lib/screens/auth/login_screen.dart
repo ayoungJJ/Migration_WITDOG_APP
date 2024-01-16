@@ -82,7 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => HomeScreen(appUser: authProvider.appUser!),
+                              builder: (context) => HomeScreen(appUser: authProvider.appUser!,
+                              ),
                             ),
                           );
                         }
@@ -103,7 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => HomeScreen(appUser: authProvider.appUser!),
+                            builder: (context) => HomeScreen(appUser: authProvider.appUser!,
+                            ),
                           ),
                         );
                       }

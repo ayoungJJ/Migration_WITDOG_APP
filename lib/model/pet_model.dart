@@ -15,6 +15,7 @@ class PetModel {
     required String petAge,
     required String petPhone,
     required bool isFavorite,
+    required String petIdentity,
   }) async {
     try {
       // petImages를 base64로 인코딩
@@ -32,6 +33,7 @@ class PetModel {
           'pet_age': petAge,
           'pet_phone': petPhone,
           'pet_favorite': isFavorite,
+          'pet_identity': petIdentity,
         }
       ]);
 

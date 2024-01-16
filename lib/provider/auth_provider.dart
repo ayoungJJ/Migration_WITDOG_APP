@@ -51,7 +51,7 @@ class AuthProvider with ChangeNotifier {
         Map<String, dynamic> kakaoUserInfo = {
           'user_id': await KakaoAppUser.getUserID(),
           'nickname': appUser.nickname,
-          'profile_image': appUser.profile_image,
+          //'profile_image': appUser.profile_image,
         };
 
         // Supabase 데이터베이스에 카카오 사용자 정보 저장
@@ -106,16 +106,16 @@ class AuthProvider with ChangeNotifier {
 
       print("Check pet data user_id : $response");
 
-      // Check the response and return whether there is data
+
       if (response != null && response.data != null && response.data!.isNotEmpty) {
-        return true; // Return true if there is data
+        return true;
       } else {
         print('Failed to check pet data: No response or no data.');
-        return false; // Return false if there is no data
+        return false;
       }
     } catch (e) {
       print('An error occurred while checking pet data: $e');
-      return false; // When an error occurs, false is returned by default.
+      return false;
     }
   }
 
@@ -153,9 +153,7 @@ class AuthProvider with ChangeNotifier {
               id: users.id.toString(),
               user_id: await KakaoAppUser.getUserID(),
               nickname: users.kakaoAccount?.profile?.nickname ?? 'No Nickname',
-              // null 체크 추가
-              profile_image: users.kakaoAccount?.profile?.profileImageUrl ?? '',
-              // null 체크 추가
+              //profile_image: users.kakaoAccount?.profile?.profileImageUrl ?? '',
               createdAt: DateTime.now(),
               kakaoAccount: null,
             );
@@ -174,8 +172,7 @@ class AuthProvider with ChangeNotifier {
               // 등록된 사용자인 경우, 홈 화면으로 이동
               await Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (context) => HomeScreen(appUser: appUser),
-                ),
+                  builder: (context) => HomeScreen(appUser: appUser),                ),
               );
             } else {
               // 등록되지 않은 사용자인 경우, PetInfoScreen으로 이동
@@ -219,5 +216,4 @@ class AuthProvider with ChangeNotifier {
       print('KakaoFlutterSdk 초기화 실패: $error');
     }
   }
-
 }

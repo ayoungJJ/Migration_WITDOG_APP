@@ -30,6 +30,7 @@ class _PetInfoScreenState extends State<PetInfoScreen> {
   String petAge = '';
   String randomNumberText = '';
   String duplicateText = '';
+  String petIdentity = (Random().nextInt(900000) + 100000).toString();
   late ImagePicker picker;
   XFile? image;
   Uint8List? imageBytes;
@@ -85,6 +86,7 @@ class _PetInfoScreenState extends State<PetInfoScreen> {
         petGender: selectedGender,
         petAge: petAge,
         petPhone: petPhone,
+        petIdentity: petIdentity,
         isFavorite: false,
       );
     } catch (error) {

@@ -8,8 +8,6 @@ import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/provider/auth_provider.dart';
 import 'package:testing_pet/screens/auth/login_screen.dart';
 import 'package:testing_pet/screens/home_screen.dart';
-import 'package:testing_pet/screens/pet_add/pet_info_screen.dart';
-import 'package:testing_pet/screens/pet_add/pet_detail_screen.dart';
 
 
 Future<void> main() async {
@@ -19,21 +17,30 @@ Future<void> main() async {
   await initializeDateFormatting('ko-KR', null);
 
   await Supabase.initialize(
-    url: 'https://eleuprlegtcsmivkiqjw.supabase.co',
+    url: 'https://fnjsdxnejydzzlievpie.supabase.co',
     anonKey:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsZXVwcmxlZ3Rjc21pdmtpcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDE5MTU4MzAsImV4cCI6MjAxNzQ5MTgzMH0.8sG1GbXkt-08Pj8WFTeekp7vTt8FblOPfJiy8jyPi_o',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuanNkeG5lanlkenpsaWV2cGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMyMTMwMjgsImV4cCI6MjAxODc4OTAyOH0.YuPhXNFkhfcLtU_NLg3gexiX9FORcQEqmy_BOGZw78Q',
   );
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
-      child: MyApp(),
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          KakaoAppUser? appUser = authProvider
+              .appUser; // AuthProvider에서 KakaoAppUser 가져오기
+          return MyApp(appUser: appUser);
+        },
+      ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  final KakaoAppUser? appUser;
+  
+  MyApp({required this.appUser});
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +51,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
+        '/home': (context) => HomeScreen(appUser: appUser!),
+        '/login': (context) => LoginScreen(),
       },
       home: LoginScreen(),
     );

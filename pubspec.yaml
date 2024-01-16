@@ -49,10 +49,18 @@ flutter:
     - assets/images/bottom_bar_icon/white_chat.svg
     - assets/images/bottom_bar_icon/white_video.svg
     - assets/images/bottom_bar_icon/white_profile.svg
+    - assets/images/bottom_bar_icon/button_pet_add_icon.svg
+    - assets/images/bottom_bar_icon/button_profile.svg
     - assets/images/record_images/animations_mic.gif
     - assets/images/record_images/mic_void.png
     - assets/images/login_images/kakao_logo.png
     - assets/images/login_images/login_screen_image.png
     - assets/images/profile_images/default_dog_profile.svg
     - assets/images/profile_images/login_success.png
+    - assets/images/index_images/demo_chat.png
+    - assets/images/index_images/demo_video_call.png
+    - assets/images/index_images/demo_community.png
+    - assets/images/index_images/demo_chatbot.png
+    - assets/images/index_images/demo_dialog.png
+    - assets/images/index_images/WITDOG.png
 

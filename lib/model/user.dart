@@ -5,16 +5,15 @@ class KakaoAppUser {
   String id;
   String user_id;
   String nickname;
-  String profile_image;
+  //String profile_image;
   DateTime createdAt;
   dynamic kakaoAccount;
 
-  // 생성자에서 user_id를 제거합니다.
   KakaoAppUser({
     required this.id,
     required this.user_id,
     required this.nickname,
-    required this.profile_image,
+    //required this.profile_image,
     required this.createdAt,
     required this.kakaoAccount,
   });

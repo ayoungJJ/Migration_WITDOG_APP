@@ -31,6 +31,7 @@ class _PetAddScreenState extends State<PetAddScreen> {
   bool selectedIsNeutered = false;
   String petAge = '';
   String randomNumberText = '';
+  String petIdentity = (Random().nextInt(900000) + 100000).toString();
   String duplicateText = '';
   late ImagePicker picker;
   XFile? image;
@@ -87,6 +88,7 @@ class _PetAddScreenState extends State<PetAddScreen> {
         petGender: selectedGender,
         petAge: petAge,
         petPhone: petPhone,
+        petIdentity: petIdentity,
         isFavorite: false,
       );
     } catch (error) {
@@ -225,7 +227,7 @@ class _PetAddScreenState extends State<PetAddScreen> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => HomeScreen(appUser: authProvider.appUser!),
+                        builder: (context) => HomeScreen(appUser: authProvider.appUser!,),
                       ),
                       (route) => false,
                     );

@@ -2,16 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:testing_pet/model/message.dart';
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/utils/constants.dart';
 
 class MessageScreen extends StatefulWidget {
+  final KakaoAppUser appUser; // KakaoAppUser 추가
   final String petId;
-  final KakaoAppUser appUser;
-
-  MessageScreen({Key? key, required this.petId, required this.appUser}) : super(key: key);
+  const MessageScreen({Key? key, required this.appUser, required this.petId}) : super(key: key);
 
   @override
   State<MessageScreen> createState() => _MessageScreenState();
@@ -19,7 +17,6 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   final TextEditingController _messageController = TextEditingController();
-  late KakaoAppUser appUser;
   late Stream<List<Message>> _messagesStream;
 
   Map<String, dynamic> _profileCache = {};
@@ -30,6 +27,7 @@ class _MessageScreenState extends State<MessageScreen> {
     _messagesStream = supabase
         .from('messages')
         .stream(primaryKey: ['id'])
+        .eq('pet_id', widget.petId) // 해당 반려동물의 메시지만 가져오도록 수정
         .order('created_at')
         .map((maps) =>
         maps.map((map) => Message.fromMap(map: map, myUserId: myUserId)).toList());
@@ -59,7 +57,7 @@ class _MessageScreenState extends State<MessageScreen> {
                   print('Data: $messages');
 
                   return ListView.builder(
-                    reverse: false,
+                    reverse: true, // 최신 메시지가 맨 위에 오도록 수정
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final message = messages[index];
@@ -121,18 +119,19 @@ class _MessageScreenState extends State<MessageScreen> {
       _messagesStream = supabase
           .from('messages')
           .stream(primaryKey: ['id'])
+          .eq('pet_id', widget.petId) // 해당 반려동물의 메시지만 가져오도록 수정
           .order('created_at')
           .map((maps) =>
           maps.map((map) => Message.fromMap(map: map, myUserId: widget.appUser.user_id)).toList());
     }
   }
 
-  void _loadProfileCache(String petId) async {
-    // Get dog profile from your data source (e.g., Supabase)
+  void _loadProfileCache(String userId) async {
+    // Get user profile from your data source (e.g., Supabase)
     final profileResponse = await supabase
         .from('Add_UserPet')
         .select()
-        .eq('pet_name', petId)
+        .eq('user_id', userId)
         .single();
 
     print(profileResponse);
@@ -142,14 +141,14 @@ class _MessageScreenState extends State<MessageScreen> {
       return;
     }
 
-    final dogProfile = profileResponse.data;
+    final userProfile = profileResponse.data;
 
     // Decode base64 encoded image
-    String base64Image = dogProfile['pet_images'];
+    String base64Image = userProfile['pet_images'];
     List<int> bytes = base64.decode(base64Image);
 
-    _profileCache[petId] = {
-      'pet_name': dogProfile['pet_name'],
+    _profileCache[userId] = {
+      'pet_name': userProfile['pet_name'],
       'pet_images': Image.memory(Uint8List.fromList(bytes)),
     };
   }
@@ -165,9 +164,8 @@ class _MessageScreenState extends State<MessageScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /*Text(profile['pet_name'].toString() ?? '사용자 이름이 없음',
+          Text(profile['pet_name'].toString() ?? '사용자 이름이 없음',
               style: TextStyle(fontWeight: FontWeight.bold)),
-          */
           Text(message.content),
           Text(message.createdAt.toString()), // Indicate creation time, change format as needed
         ],
