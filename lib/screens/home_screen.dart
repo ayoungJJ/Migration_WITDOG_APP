@@ -8,11 +8,12 @@ import 'package:testing_pet/screens/message/message_screen.dart';
 import 'package:testing_pet/screens/pet_add/pet_list_screen.dart';
 import 'package:testing_pet/screens/routing/routing_helper.dart';
 import 'package:testing_pet/widgets/buttom_navbar_items.dart';
+import 'package:testing_pet/widgets/guest_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final KakaoAppUser appUser;
 
-  HomeScreen({required this.appUser});
+  const HomeScreen({Key? key, required this.appUser}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -21,30 +22,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0; // 변경: _selectedIndex를 상태로 선언
   bool _appBarVisible = true;
-  late KakaoAppUser? _appUser;
-  late AuthProvider authProvider;
-
+  late KakaoAppUser _appUser;
 
   @override
   void initState() {
     super.initState();
-    authProvider = AuthProvider();
+    print('widget.appUser type: ${widget.appUser.runtimeType}');
+
+    if (widget.appUser is KakaoAppUser) {
+      _appUser = widget.appUser;
+    } else {
+      // 예상치 못한 형식이라면 적절히 처리
+      print('Unexpected type for widget.appUser');
+    }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initializeAppUser();
-  }
-
-  void _initializeAppUser() {
-
-    KakaoAppUser? user = authProvider.appUser;
-
-    setState(() {
-      _appUser =  user;
-    });
-  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -63,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   static List<Widget> _widgetOptions(KakaoAppUser appUser) => [
-    HomeScreenContent(),
+    HomeScreenContent(appUser: appUser,),
     MessageScreen(appUser: appUser, petId: ''),
     ChatBotAi(),
     PetListScreen(),
@@ -71,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('widget.appUser: ${widget.appUser.user_id}');
     return Scaffold(
       endDrawer: buildDrawer(context),
       appBar: _appBarVisible
@@ -116,7 +109,27 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       )
           : null,
-      body: _appUser != null ? _widgetOptions(_appUser!)[_selectedIndex] : Center(child: CircularProgressIndicator()),
+      body: _selectedIndex == 0
+        ? GestureDetector(
+        onTap: () {
+          print('print guest user :${widget.appUser}');
+
+          if (widget.appUser == null) {
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => GuestDialog()),
+        );
+      } else {
+        
+        setState(() {
+          _selectedIndex = 0; 
+        });
+      }
+    },
+    child: HomeScreenContent(appUser: widget.appUser,), // 클릭 가능한 위젯
+    )
+        : _widgetOptions(widget.appUser)[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         items: bottomNavBarItems,

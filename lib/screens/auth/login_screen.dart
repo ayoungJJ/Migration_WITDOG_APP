@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk_user.dart' as KakaoUser;
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import 'package:testing_pet/model/user.dart' as TestingPetUser;
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/provider/auth_provider.dart';
 import 'package:testing_pet/screens/home_screen.dart';
-import 'package:testing_pet/screens/pet_add/pet_info_screen.dart';
 import 'package:testing_pet/screens/record/count_down_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    AuthProvider authProvider = Provider.of<AuthProvider>(context);
     double percent = MediaQuery.of(context).size.height * 0.8;
 
     return Scaffold(
@@ -47,13 +45,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 78.0),
+            padding: const EdgeInsets.only(bottom: 122.0),
             child: Align(
               alignment: Alignment.bottomCenter,
               child: ElevatedButton(
                 style: ButtonStyle(
                   backgroundColor:
-                  MaterialStateProperty.all<Color>(Color(0xFFFFDE30)),
+                      MaterialStateProperty.all<Color>(Color(0xFFFFDE30)),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100.0),
@@ -61,68 +59,39 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 onPressed: () async {
-                  authProvider.setLoading(true);
-
                   try {
-                    await authProvider.kakaologin(context);
+                    // 카카오톡을 통한 로그인 시도
+                    await UserApi.instance.loginWithKakaoTalk();
+                    print('카카오톡을 통한 로그인 성공');
 
-                    bool isLoggedIn =
-                    await authProvider.checkKakaoLoginStatus();
+                    // 카카오 사용자 정보 가져오기
+                    final dynamic users = await UserApi.instance.me();
 
-                    if (isLoggedIn) {
-                      bool isFirstTimeUser =
-                      await authProvider.checkIfFirstTimeUser();
+                    // AppUser 모델에 맞게 필드에 접근하도록 수정
+                    final appUser = KakaoAppUser(
+                      id: users.id.toString(),
+                      user_id: await KakaoAppUser.getUserID(),
+                      nickname: users.kakaoAccount?.profile?.nickname ??
+                          'No Nickname',
+                      createdAt: DateTime.now(),
+                      kakaoAccount: null,
+                    );
+                    print('사용자 정보: $appUser');
 
-                      if (isFirstTimeUser) {
-                        bool hasPetData =
-                        await authProvider.checkIfUserHasPetDataInDatabase(
-                            authProvider.appUser);
+                    // Supabase에 사용자 정보 저장
+                    await AuthProvider().saveKakaoUserInfo(appUser);
 
-                        if (!hasPetData) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomeScreen(appUser: authProvider.appUser!,
-                              ),
-                            ),
-                          );
-                        }
-
-                        if (hasPetData) {
-                          _WelcomeDialog(context);
-                        } else if (authProvider.appUser != null) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PetInfoScreen(
-                                appUser: authProvider.appUser!,
-                              ),
-                            ),
-                          );
-                        }
-                      } else {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomeScreen(appUser: authProvider.appUser!,
-                            ),
-                          ),
-                        );
-                      }
-                    } else if (authProvider.appUser != null) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PetInfoScreen(
-                            appUser: authProvider.appUser!,
-                          ),
+                    // Navigator를 이용하여 화면 이동
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(
+                          appUser: appUser,
                         ),
-                      );
-                    }
+                      ),
+                    );
                   } catch (e) {
-                    print('로그인 실패: $e');
-                  } finally {
-                    authProvider.setLoading(false);
+                    print('오류 발생: $e');
                   }
                 },
                 child: Container(
@@ -146,6 +115,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 50.0),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: TextButton(
+                  onPressed: () {
+                    // 로그인 없이 HomeScreen으로 이동
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(appUser: KakaoAppUser(id: '', user_id: '', nickname: '', createdAt: DateTime.now(), kakaoAccount: null)), // 빈 KakaoAppUser를 전달
+                      ),
+                    );
+                  },
+                  child: Text('둘러보기',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.white, // 밑줄 색상
+                      decorationStyle: TextDecorationStyle.solid, // 밑줄 스타일
+                      decorationThickness: 1, // 간격 조절
+                    ),
                   ),
                 ),
               ),

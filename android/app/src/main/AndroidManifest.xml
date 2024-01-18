@@ -43,14 +43,15 @@
 
             </intent-filter>
         </activity>
-        <activity android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity" android:exported="true">
+
+        <activity android:name="com.kakao.sdk.flutter.AuthCodeCustomTabsActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <!-- Redirect URI: "kakao{NATIVE_APP_KEY}://oauth“ -->
-                <data android:scheme="kakao8af072c461ea48f446fa772d0662a93e" android:host="oauth"/>
+                <data android:scheme="kakao95a35ff740dfd9a4092ae9857cd62d2c" android:host="oauth"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

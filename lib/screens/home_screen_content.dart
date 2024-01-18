@@ -9,6 +9,8 @@ import 'package:testing_pet/widgets/service_guide_dialog.dart';
 class HomeScreenContent extends StatelessWidget {
   late KakaoAppUser appUser;
 
+  HomeScreenContent({Key? key, required this.appUser}) : super(key: key);
+
   Widget buildDrawer(BuildContext context) {
     return Drawer(
       child: ListView(
