@@ -56,6 +56,7 @@ flutter:
     - assets/images/record_images/mic_void.png
     - assets/images/login_images/kakao_logo.png
     - assets/images/login_images/login_screen_image.png
+    - assets/images/login_images/safe_area.png
     - assets/images/profile_images/default_dog_profile.svg
     - assets/images/profile_images/login_success.png
     - assets/images/index_images/demo_chat.png

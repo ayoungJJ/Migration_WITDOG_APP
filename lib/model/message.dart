@@ -1,26 +1,39 @@
+import 'dart:convert';
+
 class Message {
+  final String id;
+  final String userId;
+  final String petId;
+  final String context;
+  final DateTime createdAt;
+
   Message({
     required this.id,
     required this.userId,
     required this.petId,
-    required this.content,
+    required this.context,
     required this.createdAt,
   });
 
-  final String id;
-  final String userId;
-  final String petId;
-  final String content;
-  final DateTime createdAt;
+  factory Message.fromMap(Map<String, dynamic> map, {String? myUserId}) {
+    print('Message.fromMap received data: $map');
 
-  Message.fromMap({
-    required Map<String, dynamic> map,
-    required String myUserId,
-  })  : id = map['id'].toString(),
-        userId = (map['user_id'] ?? myUserId).toString(),
-        petId = map['pet_id'].toString(),
-        content = map['content'].toString(),
-        createdAt = map['created_at'] != null
-            ? DateTime.parse(map['created_at'])
-            : DateTime.now();
+    return Message(
+      id: map['id'].toString(),
+      context: map['context'].toString() ?? '',
+      createdAt: DateTime.parse(map['created_at']),
+      userId: myUserId ?? (map['user_id']?.toString() ?? ''),
+      petId: map['pet_id']?.toString() ?? '',
+    );
+  }
+
+  factory Message.empty() {
+    return Message(
+      id: '0',
+      userId: '',
+      petId: '',
+      context: '',
+      createdAt: DateTime.now(),
+    );
+  }
 }

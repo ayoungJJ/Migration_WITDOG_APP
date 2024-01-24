@@ -67,19 +67,28 @@ class PetModel {
     return base64Encode(images);
   }
 
-  Future<Map<String, dynamic>?> getPet(String petId) async {
+  Future<List<Map<String, dynamic>>> getPet(String userId) async {
     try {
       final response = await supabase
           .from('Add_UserPet')
           .select()
-          .eq('pet_id', petId)
-          .single();
+          .eq('user_id', userId);
 
       if (response != null && response != null) {
-        throw response!;
+        throw response;
       }
 
-      return response.data as Map<String, dynamic>?;
+      // 응답이 리스트인 경우
+      if (response.data is List) {
+        List<Map<String, dynamic>> dataList = (response.data as List)
+            .map((dynamic item) => item as Map<String, dynamic>)
+            .toList();
+
+        return dataList;
+      }
+
+      // 응답이 단일 객체인 경우
+      return [response.data as Map<String, dynamic>];
     } catch (error) {
       print('Error fetching pet: $error');
       rethrow;

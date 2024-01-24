@@ -66,17 +66,9 @@ class HomeScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          double screenWidth = constraints.maxWidth;
-
-          if (screenWidth > 600) {
-            return buildTabletLayout(context);
-          } else {
-            return buildMobileLayout(context);
-          }
-        },
-      ),
+      body: LayoutBuilder(builder: (context, constraints) {
+        return buildMobileLayout(context);
+      }),
     );
   }
 
@@ -89,7 +81,7 @@ class HomeScreenContent extends StatelessWidget {
           floating: false,
           flexibleSpace: FlexibleSpaceBar(
             background: Container(
-              color:  Color(0xFFD4ECEA),
+              color: Color(0xFFD4ECEA),
               child: Card(
                 elevation: 1.5,
                 color: Color(0xFFD4ECEA),
@@ -109,7 +101,8 @@ class HomeScreenContent extends StatelessWidget {
                       children: [
                         Column(
                           children: [
-                            Image.asset('assets/images/index_images/demo_dialog.png'),
+                            Image.asset(
+                                'assets/images/index_images/demo_dialog.png'),
                           ],
                         ),
                       ],
@@ -135,7 +128,10 @@ class HomeScreenContent extends StatelessWidget {
                 context,
                 '채팅',
                 'assets/images/index_images/demo_chat.png',
-                MessageScreen(appUser: appUser, petId: '',),
+                MessageScreen(
+                  appUser: appUser,
+                  petIdentity: '',
+                ),
               ),
               buildCard(
                 context,
@@ -184,14 +180,13 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-
   Widget buildTabletLayout(BuildContext context) {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
           expandedHeight: 320,
           pinned: true,
-          backgroundColor: Colors.transparent,  // 투명한 색상으로 설정
+          backgroundColor: Colors.transparent, // 투명한 색상으로 설정
           flexibleSpace: FlexibleSpaceBar(
             background: Container(
               color: Color(0xFF6ABFB9),
@@ -214,7 +209,8 @@ class HomeScreenContent extends StatelessWidget {
                       children: [
                         Column(
                           children: [
-                            Image.asset('assets/images/index_images/demo_dialog.png'),
+                            Image.asset(
+                                'assets/images/index_images/demo_dialog.png'),
                           ],
                         ),
                       ],
@@ -231,11 +227,13 @@ class HomeScreenContent extends StatelessWidget {
             crossAxisCount: 2,
             children: [
               buildCard(
-                context,
-                '챗 커뮤니티',
-                'assets/images/index_images/demo_community.png',
-                MessageScreen(appUser: appUser, petId: '',)
-              ),
+                  context,
+                  '챗 커뮤니티',
+                  'assets/images/index_images/demo_community.png',
+                  MessageScreen(
+                    appUser: appUser,
+                    petIdentity: '',
+                  )),
               buildCard(
                 context,
                 '영상 통화',

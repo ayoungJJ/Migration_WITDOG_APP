@@ -6,6 +6,7 @@ import 'package:testing_pet/screens/chatbot/chat_bot_ai.dart';
 import 'package:testing_pet/screens/home_screen_content.dart';
 import 'package:testing_pet/screens/message/message_screen.dart';
 import 'package:testing_pet/screens/pet_add/pet_list_screen.dart';
+import 'package:testing_pet/screens/pet_add/pet_profile_screen.dart';
 import 'package:testing_pet/screens/routing/routing_helper.dart';
 import 'package:testing_pet/widgets/buttom_navbar_items.dart';
 import 'package:testing_pet/widgets/guest_dialog.dart';
@@ -56,9 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static List<Widget> _widgetOptions(KakaoAppUser appUser) => [
     HomeScreenContent(appUser: appUser,),
-    MessageScreen(appUser: appUser, petId: ''),
-    ChatBotAi(),
-    PetListScreen(),
+    MessageScreen(appUser: appUser, petIdentity: ''),
+    PetProfileScreen(appUser: appUser)
   ];
 
   @override
@@ -112,9 +112,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _selectedIndex == 0
         ? GestureDetector(
         onTap: () {
-          print('print guest user :${widget.appUser}');
+          print('print guest user :${widget.appUser.user_id}');
 
-          if (widget.appUser == null) {
+          if (widget.appUser.user_id == 'guest') {
         
         Navigator.push(
           context,

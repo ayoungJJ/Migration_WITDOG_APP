@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:testing_pet/provider/auth_provider.dart';
+import 'package:testing_pet/provider/pet_provider.dart';
 import 'package:testing_pet/screens/auth/login_screen.dart';
+import 'package:testing_pet/screens/auth/tab_login_screen.dart';
 import 'package:testing_pet/widgets/DeviceInfoService.dart';
 
 
@@ -27,6 +29,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => PetProvider()),
       ],
       child: MyApp(),
     ),
@@ -34,18 +37,25 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
+    bool isTablet = MediaQuery.of(context).size.shortestSide > 600;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => PetProvider()),
+        ],
+        child: isTablet ? TabLoginScreen() : LoginScreen(),
+      ),
       routes: {
-        '/login': (context) => LoginScreen(),
+        '/login': (context) => isTablet ? TabLoginScreen() : LoginScreen(),
       },
-      home: LoginScreen(),
     );
   }
 }

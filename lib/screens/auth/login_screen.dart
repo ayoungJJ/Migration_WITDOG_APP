@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => HomeScreen(appUser: KakaoAppUser(id: '', user_id: '', nickname: '', createdAt: DateTime.now(), kakaoAccount: null)), // 빈 KakaoAppUser를 전달
+                        builder: (context) => HomeScreen(appUser: KakaoAppUser(id: '', user_id: 'guest', nickname: '', createdAt: DateTime.now(), kakaoAccount: null)), // 빈 KakaoAppUser를 전달
                       ),
                     );
                   },

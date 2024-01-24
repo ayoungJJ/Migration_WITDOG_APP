@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as KakaoUser;
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart'
+    as KakaoUser;
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/utils/constants.dart';
 import 'package:testing_pet/widgets/DeviceInfoService.dart';
@@ -27,9 +28,10 @@ class AuthProvider with ChangeNotifier {
       // Supabase 데이터베이스에 디바이스 정보 저장
       final response = await supabase
           .from('device_info')
-          .upsert(deviceInfo,
-        onConflict: 'device_info',
-      )
+          .upsert(
+            deviceInfo,
+            onConflict: 'device_info',
+          )
           .single();
 
       print('print user device : ${response}');
@@ -82,12 +84,10 @@ class AuthProvider with ChangeNotifier {
       };
 
       // Supabase 데이터베이스에 카카오 사용자 정보 저장
-      final response = await supabase
-          .from('Kakao_User')
-          .upsert(
-        kakaoUserInfo,
-        onConflict: 'user_id',
-      );
+      final response = await supabase.from('Kakao_User').upsert(
+            kakaoUserInfo,
+            onConflict: 'user_id',
+          );
 
       if (response.error != null) {
         print('카카오 사용자 정보 저장 실패: ${response.error?.message}');
@@ -115,6 +115,4 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
-
 }
-
