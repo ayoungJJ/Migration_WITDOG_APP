@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +9,8 @@ import 'package:testing_pet/provider/auth_provider.dart';
 import 'package:testing_pet/provider/pet_provider.dart';
 import 'package:testing_pet/screens/auth/login_screen.dart';
 import 'package:testing_pet/screens/auth/tab_login_screen.dart';
-import 'package:testing_pet/widgets/DeviceInfoService.dart';
+import 'package:testing_pet/widgets/service/DeviceInfoService.dart';
+import 'package:testing_pet/widgets/service/signalling_service.dart';
 
 
 Future<void> main() async {
@@ -37,8 +40,19 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+/*
+  final String websocketUrl = 'ws://192.168.0.18:5000';
+  final String selfCallerID = Random().nextInt(999999).toString().padLeft(6, '0');
+
+*/
+
   @override
   Widget build(BuildContext context) {
+/*    SignallingService.instance.init(
+      websocketUrl: websocketUrl,
+      selfCallerId: selfCallerID,
+    );*/
+
     bool isTablet = MediaQuery.of(context).size.shortestSide > 600;
 
     return MaterialApp(

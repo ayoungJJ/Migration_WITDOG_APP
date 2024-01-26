@@ -5,6 +5,7 @@ import 'package:testing_pet/provider/auth_provider.dart';
 import 'package:testing_pet/screens/chatbot/chat_bot_ai.dart';
 import 'package:testing_pet/screens/home_screen_content.dart';
 import 'package:testing_pet/screens/message/message_screen.dart';
+import 'package:testing_pet/screens/pet_add/pet_add_screen.dart';
 import 'package:testing_pet/screens/pet_add/pet_list_screen.dart';
 import 'package:testing_pet/screens/pet_add/pet_profile_screen.dart';
 import 'package:testing_pet/screens/routing/routing_helper.dart';
@@ -65,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     print('widget.appUser: ${widget.appUser.user_id}');
     return Scaffold(
-      endDrawer: buildDrawer(context),
       appBar: _appBarVisible
           ? AppBar(
         iconTheme: IconThemeData(color: Colors.grey),
@@ -83,22 +83,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: <Widget>[
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.notifications_none,
-              color: Colors.grey,
-              size: 30,
-            ),
-          ),
           Builder(
             builder: (BuildContext context) {
               return IconButton(
                 onPressed: () {
-                  Scaffold.of(context).openEndDrawer();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PetAddScreen(appUser: _appUser,)),
+                  );
                 },
                 icon: Icon(
-                  Icons.menu,
+                  Icons.add,
                   color: Colors.grey,
                   size: 30,
                 ),
@@ -142,58 +137,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          Container(
-            height: 150,
-            child: DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF6ABFB9),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-              ),
-              child: Text(
-                '메뉴',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.home,
-              color: Colors.grey[850],
-            ),
-            title: Text('홈'),
-            onTap: () {
-              // 변경: 홈 아이콘을 누를 때마다 홈 화면으로 이동하도록 수정
-              setState(() {
-                _selectedIndex = 0;
-              });
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.logout,
-              color: Colors.grey[850],
-            ),
-            title: Text('로그아웃'),
-            onTap: () {
-              _performLogout(context);
-            },
-          )
-        ],
-      ),
-    );
-  }
 
   void handleMenuItemClick(String selectedItem) {
     print('Selected item: $selectedItem');

@@ -150,12 +150,12 @@ class _TabHomeScreen extends State<TabHomeScreen> {
                       '챗 커뮤니티',
                       'assets/images/index_images/demo_chatbot.png',
                       MessageScreen(petIdentity: petIdentity)),
-                  buildCard(
+/*                  buildCard(
                     context,
                     '영상 통화',
                     'assets/images/index_images/demo_video_call.png',
-                    VideoChatScreen(),
-                  ),
+                    VideoChatScreen(calleeId: petIdentity,),
+                  ),*/
                 ],
               ),
             ),

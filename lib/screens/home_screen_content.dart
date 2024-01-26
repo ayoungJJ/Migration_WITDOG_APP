@@ -11,58 +11,6 @@ class HomeScreenContent extends StatelessWidget {
 
   HomeScreenContent({Key? key, required this.appUser}) : super(key: key);
 
-  Widget buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          Container(
-            height: 150,
-            child: DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF6ABFB9),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-              ),
-              child: Text(
-                '메뉴',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.home,
-              color: Colors.grey[850],
-            ),
-            title: Text('홈'),
-            onTap: () {
-              print('홈 눌림');
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.image,
-              color: Colors.grey[850],
-            ),
-            title: Text('사진보기'),
-            onTap: () {
-              print('사진보기 눌림');
-              Navigator.pop(context);
-            },
-            trailing: Icon(Icons.arrow_forward_ios),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,12 +66,12 @@ class HomeScreenContent extends StatelessWidget {
           sliver: SliverGrid.count(
             crossAxisCount: 2,
             children: [
-              buildCard(
+/*              buildCard(
                 context,
                 '영상 통화',
                 'assets/images/index_images/demo_video_call.png',
-                VideoChatScreen(),
-              ),
+                VideoChatScreen(callerId: appUser.user_id),
+              ),*/
               buildCard(
                 context,
                 '채팅',
@@ -133,7 +81,7 @@ class HomeScreenContent extends StatelessWidget {
                   petIdentity: '',
                 ),
               ),
-              buildCard(
+/*              buildCard(
                 context,
                 '펫 봇',
                 'assets/images/index_images/demo_chatbot.png',
@@ -144,7 +92,7 @@ class HomeScreenContent extends StatelessWidget {
                 '반려 프로필',
                 'assets/images/index_images/demo_community.png',
                 PetListScreen(),
-              ),
+              ),*/
             ],
           ),
         ),
@@ -177,73 +125,6 @@ class HomeScreenContent extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget buildTabletLayout(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 320,
-          pinned: true,
-          backgroundColor: Colors.transparent, // 투명한 색상으로 설정
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              color: Color(0xFF6ABFB9),
-              child: Card(
-                elevation: 1.5,
-                color: Color(0xFF6ABFB9),
-                child: InkWell(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return ServiceGuideDialog();
-                      },
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Column(
-                          children: [
-                            Image.asset(
-                                'assets/images/index_images/demo_dialog.png'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.all(25),
-          sliver: SliverGrid.count(
-            crossAxisCount: 2,
-            children: [
-              buildCard(
-                  context,
-                  '챗 커뮤니티',
-                  'assets/images/index_images/demo_community.png',
-                  MessageScreen(
-                    appUser: appUser,
-                    petIdentity: '',
-                  )),
-              buildCard(
-                context,
-                '영상 통화',
-                'assets/images/index_images/demo_video_call.png',
-                VideoChatScreen(),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

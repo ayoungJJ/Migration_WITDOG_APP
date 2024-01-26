@@ -74,13 +74,12 @@ class PetModel {
           .select()
           .eq('user_id', userId);
 
-      if (response != null && response != null) {
-        throw response;
-      }
+      print('getpet response $response');
+
 
       // 응답이 리스트인 경우
-      if (response.data is List) {
-        List<Map<String, dynamic>> dataList = (response.data as List)
+      if (response is List) {
+        List<Map<String, dynamic>> dataList = (response as List)
             .map((dynamic item) => item as Map<String, dynamic>)
             .toList();
 
@@ -88,7 +87,7 @@ class PetModel {
       }
 
       // 응답이 단일 객체인 경우
-      return [response.data as Map<String, dynamic>];
+      return [response as Map<String, dynamic>];
     } catch (error) {
       print('Error fetching pet: $error');
       rethrow;

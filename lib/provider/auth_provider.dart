@@ -5,7 +5,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart'
     as KakaoUser;
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/utils/constants.dart';
-import 'package:testing_pet/widgets/DeviceInfoService.dart';
+import 'package:testing_pet/widgets/service/DeviceInfoService.dart';
 
 class AuthProvider with ChangeNotifier {
   KakaoAppUser? _kakaoAppUser;
