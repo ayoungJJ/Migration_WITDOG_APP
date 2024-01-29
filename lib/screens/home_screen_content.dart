@@ -66,12 +66,12 @@ class HomeScreenContent extends StatelessWidget {
           sliver: SliverGrid.count(
             crossAxisCount: 2,
             children: [
-/*              buildCard(
+              buildCard(
                 context,
                 '영상 통화',
                 'assets/images/index_images/demo_video_call.png',
                 VideoChatScreen(callerId: appUser.user_id),
-              ),*/
+              ),
               buildCard(
                 context,
                 '채팅',
@@ -81,7 +81,7 @@ class HomeScreenContent extends StatelessWidget {
                   petIdentity: '',
                 ),
               ),
-/*              buildCard(
+              buildCard(
                 context,
                 '펫 봇',
                 'assets/images/index_images/demo_chatbot.png',
@@ -92,7 +92,7 @@ class HomeScreenContent extends StatelessWidget {
                 '반려 프로필',
                 'assets/images/index_images/demo_community.png',
                 PetListScreen(),
-              ),*/
+              ),
             ],
           ),
         ),

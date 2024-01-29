@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:testing_pet/model/message.dart';
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/utils/constants.dart';
@@ -32,33 +34,50 @@ class _MessageScreenState extends State<MessageScreen> {
   }
 
   void _initializeMessagesStream() {
+    BehaviorSubject<List<Message>> controller = BehaviorSubject<List<Message>>();
+    print('stream controller data : $controller');
+
     if (widget.appUser != null) {
+      final myUserId = widget.appUser?.user_id;
+
+      Stream<List<Message>> messageStream = supabase
+          .from('messages')
+          .stream(primaryKey: ['id'])
+          .order('created_at')
+          .map((maps) => maps
+          .map((map) => Message.fromMap(
+        map,
+        myUserId: myUserId,
+      ))
+          .toList());
+
+      print('message steam : $messageStream');
+
+      // 필터링된 Stream을 controller에 추가합니다.
+      messageStream.listen((event) {
+        controller.add(event);
+      });
+
+      _messagesStream = controller.stream;
+    }
+
+    /*if (widget.appUser != null || widget.petIdentity != null) {
       final myUserId = widget.appUser!.user_id;
 
       _messagesStream = supabase
           .from('messages')
           .stream(primaryKey: ['id'])
+          .eq('user_id', myUserId)
           .order('created_at')
           .map((maps) => maps
-              .map((map) => Message.fromMap(
-                    map,
-                    myUserId: myUserId,
-                  ))
-              .toList());
-    } else if (widget.petIdentity != null) {
-      final petUserId = widget.petIdentity;
+          .map((map) => Message.fromMap(
+        map,
+        myUserId: myUserId,
+      ))
+          .toList());
+          }
+    */
 
-      _messagesStream = supabase
-          .from('messages')
-          .stream(primaryKey: ['id'])
-          .order('created_at')
-          .map((maps) => maps
-              .map((map) => Message.fromMap(
-                    map,
-                    myUserId: petUserId,
-                  ))
-              .toList());
-    }
     super.initState();
   }
 
@@ -94,14 +113,14 @@ class _MessageScreenState extends State<MessageScreen> {
 
   Future<Map<String, dynamic>?> _loadUserProfileCache(String userId) async {
     final profileResponse =
-        await supabase.from('Add_UserPet').select().eq('user_id', userId);
+        await supabase.from('Kakao_User').select().eq('user_id', userId);
 
     if (profileResponse != null && profileResponse.isNotEmpty) {
       final userProfile = profileResponse[0];
 
       if (userProfile != null) {
         return {
-          'user_name': userProfile['user_name'],
+          'nickname': userProfile['nickname'],
         };
       }
     }
@@ -113,7 +132,8 @@ class _MessageScreenState extends State<MessageScreen> {
     final petProfileResponse = await supabase
         .from('Add_UserPet')
         .select()
-        .eq('pet_identity', petIdentity);
+        .eq('pet_identity', petIdentity)
+        .single();
 
     print('petProfileResponse $petProfileResponse}');
 
@@ -128,10 +148,8 @@ class _MessageScreenState extends State<MessageScreen> {
         };
       }
     }
-
     return null;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -145,8 +163,8 @@ class _MessageScreenState extends State<MessageScreen> {
             child: StreamBuilder<List<Message>>(
               stream: _messagesStream,
               builder: (context, AsyncSnapshot<List<Message>> snapshot) {
-                //print('widget.appUser: ${widget.appUser!.user_id}');
-                print('widget.petIdentity: ${widget.petIdentity}');
+                print('widget.appUser: ${widget.appUser!.user_id}');
+                //print('widget.petIdentity: ${widget.petIdentity}');
 
                 print('snapshop ${snapshot}');
 
@@ -227,7 +245,7 @@ class _MessageScreenState extends State<MessageScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: Icon(Icons.arrow_upward_sharp),
                   onPressed: () async {
                     final messageText = _messagesController.text;
                     await _sendMessage(messageText);
@@ -279,9 +297,9 @@ class _MessageScreenState extends State<MessageScreen> {
   Widget _ChatBubble({required Message message}) {
     final isCurrentUserMessage = widget.appUser != null
         ? message.userId == widget.appUser?.user_id &&
-        message.petId == widget.petIdentity :
-    message.userId == widget.appUser?.user_id ||
-        message.petId == widget.petIdentity;
+            message.petId == widget.petIdentity
+        : message.userId == widget.appUser?.user_id ||
+            message.petId == widget.petIdentity;
 
     String formattedTime = DateFormat('hh:mm a').format(message.createdAt);
 
@@ -312,7 +330,9 @@ class _MessageScreenState extends State<MessageScreen> {
                     Row(
                       children: [
                         Text(formattedTime),
-                        SizedBox(width: 10,),
+                        SizedBox(
+                          width: 10,
+                        ),
                         Text(message.context),
                       ],
                     ),
@@ -330,11 +350,12 @@ class _MessageScreenState extends State<MessageScreen> {
                         _buildImageFromBase64(petProfileData['pet_images']),
                         SizedBox(width: 8),
                         Text(message.context),
-                        SizedBox(width: 10,),
+                        SizedBox(
+                          width: 10,
+                        ),
                         Text(formattedTime),
                       ],
                     ),
-
                   ],
                 );
               }

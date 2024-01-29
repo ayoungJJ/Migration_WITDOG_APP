@@ -17,7 +17,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
-        android:label="testing_pet"
+        android:label="윗독"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
