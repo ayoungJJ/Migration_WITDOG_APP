@@ -217,7 +217,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text("P2P Call App"),
+        title: const Text("영상 통화"),
       ),
       body: SafeArea(
         child: Column(

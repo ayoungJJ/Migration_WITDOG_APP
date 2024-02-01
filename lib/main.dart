@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -56,6 +57,17 @@ class MyApp extends StatelessWidget {
     bool isTablet = MediaQuery.of(context).size.shortestSide > 600;
 
     return MaterialApp(
+      localizationsDelegates: [
+        //GlobalMaterialLocalizations - 안드로이드
+        //GlobalCupertinoLocalizations - IOS
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('ko','KO'),
+        const Locale('en','US'),
+      ],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,

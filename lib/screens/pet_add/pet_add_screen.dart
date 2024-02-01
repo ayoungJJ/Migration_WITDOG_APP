@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,18 +15,23 @@ import 'package:testing_pet/screens/home_screen.dart';
 import 'package:testing_pet/utils/constants.dart';
 
 class PetAddScreen extends StatefulWidget {
-  final KakaoAppUser appUser; // 생성자에 추가된 매개변수
+  late KakaoAppUser appUser;
 
   PetAddScreen({required this.appUser});
 
   @override
-  State<PetAddScreen> createState() => _PetAddScreenState();
+  State<PetAddScreen> createState() => _PetAddScreenState(appUser: appUser);
 }
 
 class _PetAddScreenState extends State<PetAddScreen> {
-  String petName = '';
-  String selectedBreed = '';
-  String selectedSize = '';
+  late KakaoAppUser appUser;
+  _PetAddScreenState({required this.appUser});
+  PetModel petModel = PetModel();
+
+
+  String petName = ''; //별칭
+  String selectedBreed = ''; //품종
+  String selectedFurColor = ''; //
   String selectedDropdown = '';
   String selectedGender = '암컷';
   bool selectedIsNeutered = false;
@@ -36,27 +42,7 @@ class _PetAddScreenState extends State<PetAddScreen> {
   late ImagePicker picker;
   XFile? image;
   Uint8List? imageBytes;
-  bool isDuplicate = true;
-
-  String generateRandomNumber() {
-    // 4자리 난수 생성
-    String randomNum = (Random().nextInt(9000) + 1000).toString();
-
-    return randomNum;
-  }
-
-  Future<String> saveToDatabase() async {
-    String genderCode = (selectedGender == '수컷') ? 'A' : 'B';
-    String sizedCode = (selectedSize == '소형')
-        ? 'A'
-        : (selectedSize == 'medium')
-        ? 'B'
-        : 'C';
-
-    String petPhone = '$genderCode$sizedCode-${generateRandomNumber()}';
-
-    return petPhone;
-  }
+  bool isDuplicate = false;
 
   Future<void> initializeImagePicker() async {
     picker = ImagePicker();
@@ -67,7 +53,18 @@ class _PetAddScreenState extends State<PetAddScreen> {
   Future<void> _addPetToDatabase() async {
     try {
       final userId = await KakaoAppUser.getUserID();
-      String petPhone = await saveToDatabase();
+
+      String petAge = myPetAge(petBirthDay);
+      print('Pet Age: $petAge');
+
+      PetModel petModel = PetModel();
+
+      String petPhone = await petModel.saveToDatabase(
+        selectedGender: selectedGender,
+        selectedFurColor: selectedFurColor,
+        selectedPetAge: petAge,
+        selectedBreed: selectedBreed,
+      );
       Uint8List? imageBytes;
       if (image != null) {
         imageBytes = await image!.readAsBytes();
@@ -78,13 +75,14 @@ class _PetAddScreenState extends State<PetAddScreen> {
         imageUrl = await _uploadImageToDatabase(imageBytes);
       }
 
-      // Add pet information to Supabase database using imageUrl in existing code
+      // DB에 펫 데이터 저장
       await PetModel().addPet(
         userId: userId,
         petImages: imageBytes ?? Uint8List(0),
         petName: petName,
         petBreed: selectedBreed,
-        petSize: selectedSize,
+        //petSize: selectedSize,
+        petFurColor: selectedFurColor,
         petGender: selectedGender,
         petAge: petAge,
         petPhone: petPhone,
@@ -101,7 +99,7 @@ class _PetAddScreenState extends State<PetAddScreen> {
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedImage =
-    await picker.pickImage(source: ImageSource.gallery);
+        await picker.pickImage(source: ImageSource.gallery);
 
     setState(() {
       image = pickedImage;
@@ -122,10 +120,11 @@ class _PetAddScreenState extends State<PetAddScreen> {
           'pet_images': imageUrl,
         }
       ]);
+      print('images response : $response');
 
-      if (response.error != null) {
+      if (response != null) {
         // 에러 처리
-        print('프로필 및 이미지 데이터 저장 오류: ${response.error!.message}');
+        print('프로필 및 이미지 데이터 저장 오류: ${response.message}');
       } else {
         // 성공적으로 데이터 저장
         print('프로필 및 이미지 데이터가 성공적으로 저장되었습니다.');
@@ -181,31 +180,116 @@ class _PetAddScreenState extends State<PetAddScreen> {
 // Supabase를 사용하여 중복 확인하는 함수
   Future<bool> simulateDuplicateCheck() async {
     try {
-      // Supabase API를 사용하여 중복 확인
+      // 마지막 4자리 추출
+      String last4Digits = phoneNumberController.text.substring(phoneNumberController.text.length - 4);
+
+      // Check for duplicates using Supabase API
       final response = await supabase
           .from('Add_UserPet')
           .select()
-          .eq('pet_phone', phoneNumberController.text)
+          .ilike('pet_phone', '%$last4Digits')  // 마지막 4자리와 일치하는지 비교
           .single();
 
-      // Supabase에서 응답이 있는지 확인하여 중복 여부 판단
-      print(response); // 디버깅용
+      // Check if there is a response from Supabase and determine whether it is a duplicate
+      print(response); // For debugging
       return response != null;
     } catch (e) {
-      // 오류 처리: Supabase PostgREST 오류인 경우
-      print('Supabase PostgREST 오류: $e');
-      return false; // 또는 예외에 대한 적절한 처리 추가
+      // Error handling: In case of Supabase PostgREST error
+      print('Supabase PostgREST Error: $e');
+      return false; // or add appropriate handling for exceptions
     }
   }
 
   TextEditingController phoneNumberController = TextEditingController();
 
-  List<String> dogBreedList = ['말티즈', '슈나우저', '믹스견'];
   List<String> dogSizeList = ['소형', '중형', '대형'];
+  List<String> dogBreedList = [
+    '닥스훈트',
+    '도베르만',
+    '라사압소',
+    '리트리버',
+    '말티즈',
+    '보더콜리',
+    '불도그',
+    '블러드하운드',
+    '비글',
+    '비숑',
+    '스피츠',
+    '시바견',
+    '시츄',
+    '웰시코기',
+    '진돗개',
+    '치와와',
+    '퍼그',
+    '포메라니안',
+    '푸들',
+    '믹스견'
+  ];
+  List<String> dogColor = [
+    '크림색',
+    '검은색',
+    '금색',
+    '빨간색',
+    '블루말색',
+    '연갈색',
+    '은색',
+    '진갈색',
+    '진회색'
+  ];
+
+  DateTime petBirthDay = DateTime.now(); //datePicker-오늘을 기준으로 변숫값 선언
+
+  void _showDialog(Widget child) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 300,
+        padding: const EdgeInsets.only(top: 6.0),
+        // The Bottom margin is provided to align the popup above the system
+        // navigation bar.
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        // Provide a background color for the popup.
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        // Use a SafeArea widget to avoid system overlaps.
+        child: SafeArea(
+          top: false,
+          child: child,
+        ),
+      ),
+      barrierDismissible: true, //외부 탭하면 다이얼로그 닫기
+    );
+    String petAge = myPetAge(petBirthDay); // 여기서 myPetAge의 반환값을 저장합니다.
+    print('Pet Age: $petAge');
+    myPetAge(petBirthDay);
+  }
+
+  myPetAge(DateTime selectedDate) {
+    DateTime nowDate = DateTime.now();
+    int age = nowDate.year - selectedDate.year;
+    int month1 = nowDate.month;
+    int month2 = selectedDate.month;
+
+    if (month1 < month2) {
+      age--;
+    }
+    if (month1 == month2) {
+      int day1 = nowDate.day;
+      int day2 = selectedDate.day;
+      if (day2 > day1) {
+        age--;
+      }
+    }
+    return age.toString();
+  }
+
 
   @override
   Widget build(BuildContext context) {
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
+    print('widget.app : ${widget.appUser.user_id}');
+
 
     return Scaffold(
       body: NestedScrollView(
@@ -226,11 +310,20 @@ class _PetAddScreenState extends State<PetAddScreen> {
                     await _addPetToDatabase();
                     Navigator.pushAndRemoveUntil(
                       context,
+                      // TODO : 시간날때 고쳐야 되는 부분
                       MaterialPageRoute(
-                        builder: (context) => HomeScreen(appUser: authProvider.appUser!,),
-                      ),
-                      (route) => false,
+                        builder: (context) {
+                          if (authProvider.appUser != null && authProvider.appUser is KakaoAppUser) {
+                            KakaoAppUser appUser = authProvider.appUser as KakaoAppUser;
+                            return HomeScreen(appUser: appUser);
+                          } else {
+                            // 처리할 로직이나 기본값을 반환하세요.
+                            return HomeScreen(appUser: appUser);
+                          }
+                        },                      ),
+                          (route) => false,
                     );
+
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(right: 16.0),
@@ -259,360 +352,420 @@ class _PetAddScreenState extends State<PetAddScreen> {
             decoration: BoxDecoration(
               color: Color(0xFFF0F0F0),
             ),
-            child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0, top: 8.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    '반려동물 사진 추가',
-                    style: TextStyle(
-                      color: Color(0xFF7C7C7C),
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      '반려동물 사진 추가',
+                      style: TextStyle(
+                        color: Color(0xFF7C7C7C),
+                        fontSize: 18,
+                        fontWeight: FontWeight.normal,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 19,
-              ),
-              Container(
-                width: 184,
-                height: 184,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                SizedBox(
+                  height: 19,
+                ),
+                Container(
+                  width: 184,
+                  height: 184,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                      ),
+                    ],
+                  ),
+                  child: GestureDetector(
+                    onTap: _onAddButtonClicked, // Add 버튼 클릭 시 함수 호출
+                    child: Stack(
+                      children: [
+                        // gradation
+                        Positioned(
+                          top: 0.67 * 184,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFFC1C1C1),
+                                  Colors.grey,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(33.0),
+                          child: image != null
+                              ? Image.file(File(image!.path),
+                                  width: 118, height: 118)
+                              : SvgPicture.asset(
+                                  'assets/images/profile_images/default_dog_profile.svg',
+                                  width: 118,
+                                  height: 118,
+                                ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 11,
+                          child: Center(
+                            child: Text(
+                              '추가하기',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                // 텍스트 입력 필드 3개 추가
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0, left: 16.0),
+                      child: Container(
+                        height: 56,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.transparent,
+                        ),
+                        child: TextField(
+                          onChanged: (value) {
+                            setState(() {
+                              petName = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: '별칭을 입력해 주세요',
+                            labelStyle: TextStyle(
+                              color: Color(0xffC1C1C1),
+                              fontSize: 18,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Color(0xffC1C1C1),
+                                width: 2,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Color(0xffE0E0E0),
+                                width: 1,
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.all(16),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                child: GestureDetector(
-                  onTap: _onAddButtonClicked, // Add 버튼 클릭 시 함수 호출
-                  child: Stack(
-                    children: [
-                      // gradation
-                      Positioned(
-                        top: 0.67 * 184,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Color(0xFFC1C1C1),
-                                Colors.grey,
-                              ],
+
+                SizedBox(
+                  height: 12,
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(right: 16.0, left: 16.0, top: 12),
+                  child: Container(
+                    height: 56, // DropdownButton의 높이 조절
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.transparent,
+                      border: Border.all(
+                        color: Color(0xffE0E0E0),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value:
+                                selectedBreed.isNotEmpty ? selectedBreed : null,
+                            items: dogBreedList.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: SizedBox(
+                                  child: Center(
+                                    child: Text(
+                                      value,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (String? value) {
+                              setState(() {
+                                selectedBreed = value ?? '';
+                              });
+                            },
+                            underline: Container(),
+                            icon: Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: Icon(Icons.arrow_drop_down,
+                                  color: Color(0xffC1C1C1)),
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            hint: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Text(
+                                '반려동물 품종 선택',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Color(0xffC1C1C1),
+                                ),
+                              ),
+                            ),
+                            isExpanded: true,
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(33.0),
-                        child: image != null
-                            ? Image.file(File(image!.path),
-                            width: 118, height: 118)
-                            : SvgPicture.asset(
-                          'assets/images/profile_images/default_dog_profile.svg',
-                          width: 118,
-                          height: 118,
-                        ),
-                      ),
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 11,
-                        child: Center(
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 12,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // 암컷 선택 버튼
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 7),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedGender = '암컷';
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            fixedSize: Size.fromHeight(56),
+                            backgroundColor: selectedGender == '암컷'
+                                ? Color(0xFF16C077)
+                                : Color(0xffE0E0E0),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
                           child: Text(
-                            '추가하기',
+                            '암컷',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: selectedGender == '암컷'
+                                  ? Colors.white
+                                  : Color(0xffC1C1C1),
                             ),
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                    // 수컷 선택 버튼
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 7, right: 16),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedGender = '수컷';
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            fixedSize: Size.fromHeight(56),
+                            backgroundColor: selectedGender == '수컷'
+                                ? Color(0xFF16C077)
+                                : Color(0xffE0E0E0),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                            '수컷',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: selectedGender == '수컷'
+                                  ? Colors.white
+                                  : Color(0xffC1C1C1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0),
+                  child: Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: selectedIsNeutered,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              selectedIsNeutered = value ?? false;
+                            });
+                          },
+                          visualDensity:
+                              VisualDensity(horizontal: -4, vertical: -4),
+                        ),
+                        Text(
+                          '중성화했음',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 20),
-              // 텍스트 입력 필드 3개 추가
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0, left: 16.0),
-                    child: Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.transparent,
+                SizedBox(
+                  height: 24,
+                ),
+                Column(
+                  children: <Widget>[
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Color(0xFFF0F0F0),
+                        fixedSize: Size(377, 56),
+                        side: BorderSide(
+                          color: Color(0xffE0E0E0),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(12))),
                       ),
-                      child: TextField(
-                        onChanged: (value) {
-                          setState(() {
-                            petName = value;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          labelText: '별칭을 입력해 주세요',
-                          labelStyle: TextStyle(
-                            color: Color(0xffC1C1C1),
-                            fontSize: 18,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Color(0xffC1C1C1),
-                              width: 2,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Color(0xffE0E0E0),
-                              width: 1,
-                            ),
-                          ),
-                          contentPadding: EdgeInsets.all(16),
+                      onPressed: () => _showDialog(
+                        CupertinoDatePicker(
+                          initialDateTime: petBirthDay,
+                          mode: CupertinoDatePickerMode.date,
+                          maximumYear: DateTime.now().year,
+                          maximumDate: DateTime.now(),
+                          onDateTimeChanged: (DateTime birthDay) {
+                            setState(() => petBirthDay = birthDay,);
+                          },
+                        ),
+                      ),
+                      child:Text(
+                        '${petBirthDay.year}/${petBirthDay.month}/${petBirthDay.day}',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-
-              SizedBox(
-                height: 12,
-              ),
-              Padding(
-                padding:
-                const EdgeInsets.only(right: 16.0, left: 16.0, top: 12),
-                child: Container(
-                  height: 56, // DropdownButton의 높이 조절
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.transparent,
-                    border: Border.all(
-                      color: Color(0xffE0E0E0),
-                      width: 1,
+                    //CupertinoButton.filled(child: child, onPressed: onPressed)
+                  ],
+                ),
+                SizedBox(
+                  height: 12,
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(right: 16.0, left: 16.0, top: 12),
+                  child: Container(
+                    height: 56, // DropdownButton의 높이 조절
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.transparent,
+                      border: Border.all(
+                        color: Color(0xffE0E0E0),
+                        width: 1,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButton<String>(
-                          value:
-                          selectedBreed.isNotEmpty ? selectedBreed : null,
-                          items: dogBreedList.map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: SizedBox(
-                                child: Center(
-                                  child: Text(
-                                    value,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: selectedFurColor.isNotEmpty
+                                ? selectedFurColor
+                                : null,
+                            items: dogColor.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: SizedBox(
+                                  child: Center(
+                                    child: Text(
+                                      value,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.black,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (String? value) {
-                            setState(() {
-                              selectedBreed = value ?? '';
-                            });
-                          },
-                          underline: Container(),
-                          icon: Padding(
-                            padding: const EdgeInsets.only(right: 16.0),
-                            child: Icon(Icons.arrow_drop_down,
-                                color: Color(0xffC1C1C1)),
-                          ),
-                          hint: Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              '반려동물 품종 선택',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Color(0xffC1C1C1),
-                              ),
+                              );
+                            }).toList(),
+                            onChanged: (String? value) {
+                              setState(() {
+                                selectedFurColor = value ?? '';
+                              });
+                            },
+                            underline: Container(),
+                            icon: Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: Icon(Icons.arrow_drop_down,
+                                  color: Color(0xffC1C1C1)),
                             ),
-                          ),
-                          isExpanded: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 12,
-              ),
-              Padding(
-                padding:
-                const EdgeInsets.only(right: 16.0, left: 16.0, top: 12),
-                child: Container(
-                  height: 56, // DropdownButton의 높이 조절
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.transparent,
-                    border: Border.all(
-                      color: Color(0xffE0E0E0),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButton<String>(
-                          value: selectedSize.isNotEmpty ? selectedSize : null,
-                          items: dogSizeList.map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: SizedBox(
-                                child: Center(
-                                  child: Text(
-                                    value,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                    ),
-                                  ),
+                            hint: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Text(
+                                '반려동물 모색 선택',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Color(0xffC1C1C1),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (String? value) {
-                            setState(() {
-                              selectedSize = value ?? '';
-                            });
-                          },
-                          underline: Container(),
-                          icon: Padding(
-                            padding: const EdgeInsets.only(right: 16.0),
-                            child: Icon(Icons.arrow_drop_down,
-                                color: Color(0xffC1C1C1)),
-                          ),
-                          hint: Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              '반려동물 품종 선택',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Color(0xffC1C1C1),
-                              ),
                             ),
+                            isExpanded: true,
                           ),
-                          isExpanded: true,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 12,
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // 암컷 선택 버튼
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16, right: 7),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedGender = '암컷';
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size.fromHeight(56),
-                          backgroundColor: selectedGender == '암컷'
-                              ? Color(0xFF16C077)
-                              : Color(0xffE0E0E0),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text(
-                          '암컷',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: selectedGender == '암컷'
-                                ? Colors.white
-                                : Color(0xffC1C1C1),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // 수컷 선택 버튼
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 7, right: 16),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedGender = '수컷';
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size.fromHeight(56),
-                          backgroundColor: selectedGender == '수컷'
-                              ? Color(0xFF16C077)
-                              : Color(0xffE0E0E0),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text(
-                          '수컷',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: selectedGender == '수컷'
-                                ? Colors.white
-                                : Color(0xffC1C1C1),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Container(
+                SizedBox(
+                  height: 16,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Checkbox(
-                        value: selectedIsNeutered,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            selectedIsNeutered = value ?? false;
-                          });
-                        },
-                        visualDensity:
-                        VisualDensity(horizontal: -4, vertical: -4),
-                      ),
                       Text(
-                        '중성화했음',
+                        '동물전화번호',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -621,194 +774,139 @@ class _PetAddScreenState extends State<PetAddScreen> {
                     ],
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 24,
-              ),
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0, left: 16.0),
-                    child: Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.transparent,
-                      ),
-                      child: TextField(
-                        onChanged: (value) {
-                          setState(() {
-                            petAge = value;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          labelText: '몇살인지 입력해 주세요',
-                          labelStyle: TextStyle(
-                            color: Color(0xffC1C1C1),
-                            fontSize: 18,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Color(0xffC1C1C1),
-                              width: 2,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Color(0xffE0E0E0),
-                              width: 1,
-                            ),
-                          ),
-                          contentPadding: EdgeInsets.all(16),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16,),
-              Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Row(
-                  children: [
-                    Text(
-                      '동물전화번호',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                SizedBox(
+                  height: 3,
                 ),
-              ),
-              SizedBox(height: 3,),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Row(
-                  children: [
-                    Text(
-                      '원격으로 통신할 수 있는 동물전화번호를 등록합니다.\n끝자리만 선택이 가능해요 예시) ABC-1234-5678',
-                      style: TextStyle(
-                        color: Color(0xff7C7C7C),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16,),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                      height: 56,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller:
-                              TextEditingController(text: randomNumberText),
-                              style: TextStyle(fontSize: 20),
-                              readOnly: false,
-                              decoration: InputDecoration(
-                                hintText: '번호입력',
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Color(0xFFDDDDDD), width: 1),
-                      ),
-                    ),
-                  ),
-                  Row(
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0),
+                  child: Row(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12.0),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size(96, 56),
-                            backgroundColor: Color(0xFF262121),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              randomNumberText = generateRandomNumber();
-                            });
-                          },
-                          child: Text(
-                            '랜덤번호',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                      Text(
+                        '원격으로 통신할 수 있는 동물전화번호를 등록합니다.\n끝자리만 선택이 가능해요 예시) ABC-1234-5678',
+                        style: TextStyle(
+                          color: Color(0xff7C7C7C),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size(96, 56),
-                            backgroundColor: Color(0xFF16C077),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            checkForDuplicates();
-                          },
-                          child: Text(
-                            '중복확인',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 10,),
-              Padding(
-                padding: const EdgeInsets.only(left: 16),
-                child: Row(
+                ),
+                SizedBox(
+                  height: 16,
+                ),
+                Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        randomNumberText,
-                        style: TextStyle(
-                          color: isDuplicate ? Colors.red : Colors.green,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                      child: Container(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                        height: 56,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: TextEditingController(
+                                    text: randomNumberText),
+                                style: TextStyle(fontSize: 20),
+                                readOnly: false,
+                                decoration: InputDecoration(
+                                  hintText: '번호입력',
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border:
+                              Border.all(color: Color(0xFFDDDDDD), width: 1),
                         ),
                       ),
                     ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size(96, 56),
+                              backgroundColor: Color(0xFF262121),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                randomNumberText =
+                                    PetModel().generateRandomNumber1();
+                              });
+                            },
+                            child: Text(
+                              '랜덤번호',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size(96, 56),
+                              backgroundColor: Color(0xFF16C077),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              checkForDuplicates(); // 중복 확인 수행
+                            },
+                            child: Text(
+                              '중복확인',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ),
-            ],
+                SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          randomNumberText,
+                          style: TextStyle(
+                            color: isDuplicate ? Colors.red : Color(0xFF45B0ED),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),

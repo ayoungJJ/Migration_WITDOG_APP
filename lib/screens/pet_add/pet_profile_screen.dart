@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/model/pet_model.dart';
 import 'package:intl/intl.dart';
+import 'package:testing_pet/screens/home_screen.dart';
+import 'package:testing_pet/screens/pet_add/pet_another_list_screen.dart';
+import 'package:testing_pet/widgets/buttom_navbar_items.dart';
+import 'package:testing_pet/widgets/guest_dialog.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final KakaoAppUser? appUser;
@@ -18,6 +22,10 @@ class PetProfileScreen extends StatefulWidget {
 class _PetProfileScreenState extends State<PetProfileScreen> {
   late PetModel _petModel;
   Map<String, dynamic>? petProfileData;
+  int _selectedIndex = 2;
+  late KakaoAppUser appUser;
+
+
 
   String get formattedTime {
     return petProfileData != null
@@ -30,6 +38,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
   void initState() {
     super.initState();
     _petModel = PetModel();
+    appUser = widget.appUser!;
     _loadPetData();
     _loadAndProcessPetData();
   }
@@ -67,6 +76,44 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     }
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen(appUser: appUser)),
+              (route) => false,
+        );
+        break;
+      case 1:
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => PetAnotherListScreen(appUser: appUser,)),
+              (route) => false,
+        );
+        break;
+      case 2:
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => PetProfileScreen(appUser: widget.appUser)),
+              (route) => false,
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  static List<Widget> _widgetOptions(KakaoAppUser appUser) => [
+    HomeScreen(appUser: appUser),
+    PetAnotherListScreen(appUser: appUser),
+    PetProfileScreen(appUser: appUser)
+  ];
+
 // 사용 예시
   Future<void> _loadAndProcessPetData() async {
     List<Map<String, dynamic>>? data = await _loadPetData();
@@ -76,6 +123,20 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Padding(
+          padding: const EdgeInsets.only(left: 9.0),
+          child: Text(
+            '반려견 전화번호',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+            ),
+
+          ),
+        ),
+      ),
       body: petProfileData != null
           ? _buildPetProfile()
           : Center(
@@ -84,27 +145,12 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     );
   }
 
-  ////////////////////
+  // TODO: 퍼센트 작업해야 함
   Widget _buildPetProfile() {
     if (petProfileData != null) {
       return Scaffold(
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 50.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    '반려견 전화번호',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Padding(
               padding: const EdgeInsets.only(left: 9.0),
               child: Container(
@@ -114,7 +160,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   image: DecorationImage(
-                    image: AssetImage('assets/images/profile_images/ppp.png'),
+                    image: AssetImage('assets/images/profile_images/pet_profile_card.png'),
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -228,13 +274,20 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                       top: 162,
                       left: 286,
                       child: Image.asset(
-                          'assets/images/index_images/witdog_logo.png'),
+                          'assets/images/profile_images/pet_profile_witdog_logo.png'),
                     ),
                   ],
                 ),
               ),
             ),
           ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: bottomNavBarItems,
+          selectedItemColor: const Color(0xFF01DF80),
+          showUnselectedLabels: true,
         ),
       );
     } else {

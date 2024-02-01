@@ -5,6 +5,7 @@ class PetList {
   final String petImages;
   final String petGender;
   final String petBreed;
+  final String petPhone;
   final bool petFavorite;
 
   PetList({
@@ -14,6 +15,7 @@ class PetList {
     required this.petImages,
     required this.petGender,
     required this.petBreed,
+    required this.petPhone,
     required this.petFavorite,
   });
 
@@ -26,6 +28,7 @@ class PetList {
       petImages: map['pet_images'] as String,
       petGender: map['pet_gender'] as String,
       petBreed: map['pet_breed'] as String,
+      petPhone: map['pet_phone'] as String,
       petFavorite: map['pet_favorite'] as bool,
     );
   }
@@ -37,6 +40,7 @@ class PetList {
       'pet_images': petImages,
       'pet_gender': petGender,
       'pet_breed': petBreed,
+      'pet_phone' : petPhone,
       'pet_favorite': petFavorite,
     };
   }

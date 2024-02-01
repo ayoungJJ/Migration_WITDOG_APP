@@ -8,16 +8,16 @@ import 'package:testing_pet/model/user.dart';
 import 'package:testing_pet/screens/pet_add/pet_add_screen.dart';
 import 'package:testing_pet/utils/constants.dart';
 
-class PetListScreen extends StatefulWidget {
+class PetAnotherListScreen extends StatefulWidget {
   final KakaoAppUser appUser;
 
-  PetListScreen({required this.appUser});
+  PetAnotherListScreen({required this.appUser});
 
   @override
-  State<PetListScreen> createState() => _PetListScreenState();
+  State<PetAnotherListScreen> createState() => _PetAnotherListScreenState();
 }
 
-class _PetListScreenState extends State<PetListScreen> {
+class _PetAnotherListScreenState extends State<PetAnotherListScreen> {
   int _currentIndex = 0;
   late List<Map<String, dynamic>> dataList;
   late KakaoAppUser appUser;
@@ -33,7 +33,7 @@ class _PetListScreenState extends State<PetListScreen> {
     final response = await supabase
         .from('Add_UserPet')
         .select()
-        .like('user_id', '${widget.appUser.user_id}%');
+        .not('user_id', 'eq', '${widget.appUser.user_id}');
     print('response : $response');
 
     // 반려동물 데이터를 파싱하고 _petList 업데이트
@@ -72,7 +72,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 child: ListTile(
                   title: Text(pet.petName),
                   subtitle: Text(
-                    'Age: ${pet.petAge}, ${pet.petBreed}, ${pet.petFavorite}, ${pet.petGender}',
+                    '${pet.petPhone}',
                   ),
                   leading: Container(
                     width: 92.0,
@@ -104,7 +104,8 @@ class _PetListScreenState extends State<PetListScreen> {
         child: ListTile(
           title: Text(pet.petName),
           subtitle: Text(
-              'Age: ${pet.petAge}, ${pet.petBreed}, ${pet.petFavorite}, ${pet.petGender}'),
+            '${pet.petPhone}',
+          ),
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(12.0),
             child: Container(
@@ -141,7 +142,7 @@ class _PetListScreenState extends State<PetListScreen> {
               child: ListTile(
                 title: Text(pet.petName),
                 subtitle: Text(
-                  'Age: ${pet.petAge}, ${pet.petBreed}, ${pet.petFavorite}, ${pet.petGender}',
+                  '${pet.petPhone}',
                 ),
                 leading: Container(
                   width: 92.0,
@@ -168,7 +169,7 @@ class _PetListScreenState extends State<PetListScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '내 반려동물',
+                '커뮤니티',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 22,
@@ -186,7 +187,7 @@ class _PetListScreenState extends State<PetListScreen> {
                   );
                 },
                 child: Text(
-                  '동물 추가',
+                  '추가하기',
                   style: TextStyle(
                     color: Color(0xFF0094FF),
                     fontSize: 18,
@@ -209,7 +210,7 @@ class _PetListScreenState extends State<PetListScreen> {
                 child: Align(
                   alignment: Alignment.topLeft,
                   child: Text(
-                    '즐겨찾기',
+                    '친구반려견 리스트',
                     style: TextStyle(
                       color: Color(0xFF7C7C7C),
                       fontSize: 18,
@@ -219,37 +220,11 @@ class _PetListScreenState extends State<PetListScreen> {
                 ),
               ),
               SizedBox(height: 14),
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Divider(
-                  // Separator line
-                  color: Color(0xffE0E0E0), // Same color as text
-                  thickness: 1.0, // 선의 두께
-                ),
-              ),
-              SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    '반려동물 리스트',
-                    style: TextStyle(
-                      color: Color(0xFF7C7C7C),
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 14,
-              ),
               Container(
                 child: Column(
                   children: List.generate(
                     _petList.length,
-                    (index) {
+                        (index) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: ElevatedButton(
@@ -268,6 +243,9 @@ class _PetListScreenState extends State<PetListScreen> {
                   ),
                 ),
               )
-            ])));
+            ]
+            )
+        )
+    );
   }
 }

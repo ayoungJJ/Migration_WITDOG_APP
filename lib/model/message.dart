@@ -15,8 +15,11 @@ class Message {
     required this.createdAt,
   });
 
-  factory Message.fromMap(Map<String, dynamic> map, {String? myUserId}) {
-    print('Message.fromMap received data: $map');
+  factory Message.fromMap({
+    required Map<String, dynamic> map,
+    String? myUserId,
+  }) {
+    print('Message.fromMap received data Model data log: $map');
 
     return Message(
       id: map['id'].toString(),

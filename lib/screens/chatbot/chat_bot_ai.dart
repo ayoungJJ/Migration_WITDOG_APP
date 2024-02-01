@@ -20,50 +20,141 @@ class _ChatBotAiState extends State<ChatBotAi> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("펫봇"),
+        iconTheme: IconThemeData(color: Colors.white),
+        title: const Text(
+          "펫봇",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color(0xff2B3320),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              reverse: true, // 새로운 메시지가 맨 위로 오도록 변경
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    _messages[index].text,
-                    textAlign: _messages[index].isUser
-                        ? TextAlign.right
-                        : TextAlign.left,
-                  ),
-                  subtitle: Text(_messages[index].isUser ? '' : 'GPT'),
-                );
-              },
+      body: Container(
+        color: Color(0xff2B3320),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                reverse: true, // 새로운 메시지가 맨 위로 오도록 변경
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(
+                      _messages[index].text,
+                      textAlign: _messages[index].isUser
+                          ? TextAlign.right
+                          : TextAlign.left,
+                    ),
+                    subtitle: Text(_messages[index].isUser ? '' : 'GPT'),
+                  );
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                  ),
+            Container(
+              alignment: Alignment.center,
+              child: Image.asset(
+                  'assets/images/petbot_images/petbot_main_image.png'), // petbot_images.png를 추가
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            Container(
+              child: Text(
+                '안녕하세요 윗독입니다\n무엇을 도와드릴까요?',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(
+              height: 120,
+            ),
+            Container(
+                child: Text(
+              'AI상담으로 조금 더 정확한 진단은\n전문가를 찾아주세요',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            )),
+            SizedBox(
+              height: 50,
+            ),
+            Container(
+              color: Color(0xff6A7C73),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Color.fromRGBO(0, 0, 0, 0.3),
+                            borderRadius: BorderRadius.circular(100.0),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.6),
+                              width: 2,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _controller,
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: '궁금하신 것을 물어보세요',
+                                      hintStyle: TextStyle(
+                                        fontSize: 18,
+                                        color: Color.fromRGBO(227, 227, 227, 1.0), // 정수 값으로 지정된 RGB 값
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 10.0),
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    _sendMessage(_controller.text, true);
+                                    generateText(_controller.text)
+                                        .then((response) {
+                                      _sendMessage(response, false);
+                                    });
+                                    _controller.clear();
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(
+                                        Icons.arrow_upward,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    _sendMessage(_controller.text, true); // 사용자 메시지
-                    generateText(_controller.text).then((response) {
-                      _sendMessage(response, false); // GPT 메시지
-                    });
-                    _controller.clear();
-                  },
-                  child: const Text("Send"),
-                )
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -71,7 +162,8 @@ class _ChatBotAiState extends State<ChatBotAi> {
   void _sendMessage(String text, bool isUser) {
     DateTime currentTime = DateTime.now();
     String period = (currentTime.hour >= 12) ? '오후' : '오전';
-    int hour = (currentTime.hour > 12) ? currentTime.hour - 12 : currentTime.hour;
+    int hour =
+        (currentTime.hour > 12) ? currentTime.hour - 12 : currentTime.hour;
     String formattedHour = hour.toString().padLeft(2, '0');
     String formattedMinute = currentTime.minute.toString().padLeft(2, '0');
     String formattedTime = "$period $formattedHour:$formattedMinute";
@@ -99,7 +191,7 @@ Future<String> generateText(String prompt) async {
     body: jsonEncode({
       "model": "text-davinci-003",
       'prompt':
-      "What is $prompt? Tell me like you're explaining to an eight-year-old.",
+          "What is $prompt? Tell me like you're explaining to an eight-year-old.",
       'max_tokens': 1000,
       'temperature': 0,
       'top_p': 1,
@@ -109,7 +201,7 @@ Future<String> generateText(String prompt) async {
   );
 
   Map<String, dynamic> newresponse =
-  jsonDecode(utf8.decode(response.bodyBytes));
+      jsonDecode(utf8.decode(response.bodyBytes));
 
   print("Response from GPT: $newresponse");
 

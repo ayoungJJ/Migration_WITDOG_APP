@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:testing_pet/provider/pet_provider.dart';
 import 'package:testing_pet/screens/chatbot/chat_bot_ai.dart';
-import 'package:testing_pet/screens/home_screen_content.dart';
 import 'package:testing_pet/screens/message/message_screen.dart';
 import 'package:testing_pet/screens/pet_add/pet_list_screen.dart';
 import 'package:testing_pet/screens/routing/routing_helper.dart';
@@ -47,8 +46,8 @@ class _TabHomeScreen extends State<TabHomeScreen> {
   }
 
   static List<Widget> _widgetOptions() => [
-    PetListScreen(),
-    PetListScreen(),
+    Container(),
+    Container(),
   ];
 
   @override
@@ -150,12 +149,12 @@ class _TabHomeScreen extends State<TabHomeScreen> {
                       '챗 커뮤니티',
                       'assets/images/index_images/demo_chatbot.png',
                       MessageScreen(petIdentity: petIdentity)),
-/*                  buildCard(
+                  buildCard(
                     context,
                     '영상 통화',
                     'assets/images/index_images/demo_video_call.png',
                     VideoChatScreen(calleeId: petIdentity,),
-                  ),*/
+                  ),
                 ],
               ),
             ),

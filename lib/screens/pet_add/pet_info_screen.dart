@@ -26,6 +26,7 @@ class _PetInfoScreenState extends State<PetInfoScreen> {
   String selectedSize = '';
   String selectedDropdown = '';
   String selectedGender = '암컷';
+  String selectedFurColor = ''; //
   bool selectedIsNeutered = false;
   String petAge = '';
   String randomNumberText = '';
@@ -76,19 +77,6 @@ class _PetInfoScreenState extends State<PetInfoScreen> {
         imageUrl = await _uploadImageToDatabase(imageBytes);
       }
 
-      // Add pet information to Supabase database using imageUrl in existing code
-      await PetModel().addPet(
-        userId: userId,
-        petImages: imageBytes ?? Uint8List(0),
-        petName: petName,
-        petBreed: selectedBreed,
-        petSize: selectedSize,
-        petGender: selectedGender,
-        petAge: petAge,
-        petPhone: petPhone,
-        petIdentity: petIdentity,
-        isFavorite: false,
-      );
     } catch (error) {
       print('Error adding pet: $error');
       rethrow;
@@ -777,10 +765,8 @@ class _PetInfoScreenState extends State<PetInfoScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-
                         ),
                       ),
-                      
                     ],
                   ),
                 ],
