@@ -172,17 +172,16 @@ class _PetAddScreenState extends State<PetAddScreen> {
   void checkForDuplicates() async {
     List<String> lastFourDigitsList = await getPetPhoneLastFourDigits();
     // 중복 확인
-    bool isDuplicates =
-        lastFourDigitsList.any((digits) => randomNumberText.contains(digits));
+    bool isDuplicate = lastFourDigitsList
+        .any((digits) => randomNumberHistory.contains(digits));
 
     // 중복 여부에 따라 메시지 업데이트
     setState(() {
-      if (isDuplicates) {
+      if (isDuplicate) {
         // 중복된 경우 - 빨간색으로 표시
         duplicateText = '이 번호는 이미 등록되었습니다.';
       } else {
         // 사용 가능한 경우 - 초록색으로 표시
-        isDuplicate = true;
         duplicateText = '사용 가능한 번호입니다.';
       }
     });
@@ -191,19 +190,19 @@ class _PetAddScreenState extends State<PetAddScreen> {
   void checkForUserEnteredDuplicates() async {
     List<String> userLastFourDigitsList = await getPetPhoneLastFourDigits();
     print('userEnteredNumberText:${userEnteredNumberText}');
+    //print('긴거긴거user lastFourDigitsList : ${userLastFourDigitsList[0]}');
     // 중복 확인
     print('userLastFourDigitsList:$userLastFourDigitsList ');
-    bool isDuplicates = userLastFourDigitsList
-        .any((digits) => userEnteredNumberText.contains(digits));
+    bool isDuplicate = userLastFourDigitsList
+        .any((digits) => digits == userEnteredNumberHistory.contains(digits));
 
     // 중복 여부에 따라 메시지 업데이트
     setState(() {
-      if (isDuplicates) {
+      if (isDuplicate) {
         // 중복된 경우 - 빨간색으로 표시
         duplicateText = '이 번호는 이미 등록되었습니다.';
       } else {
         // 사용 가능한 경우 - 초록색으로 표시
-        isDuplicate = true;
         duplicateText = '사용 가능한 번호입니다.';
       }
     });
@@ -313,14 +312,31 @@ class _PetAddScreenState extends State<PetAddScreen> {
     }
     return age.toString();
   }
-
-  TextEditingController _controller = TextEditingController();
-
-  void _setControllerText() {
+  TextEditingController _controller=TextEditingController();
+void _setControllerText(){
     setState(() {
-      _controller.text =
-          isRandomMode ? randomNumberText : userEnteredNumberText;
+      _controller.text = isRandomMode?randomNumberText:userEnteredNumberText;
     });
+}
+
+  void _randomTap() async{
+    //랜덤번호 중복확인
+setState(() {
+  randomNumberText='';
+  randomNumberHistory='';
+  print('randomNumberText asdadlfjlkdsjfajdf;k $randomNumberText');
+});
+_setControllerText();
+  }
+
+  void _userNumChange(String value) async{
+    //user가 직접 입력한 번호를 중복확인
+    setState(() {
+      userEnteredNumberText=value;
+      userEnteredNumberHistory='';
+      print('userEnteredNumberText $userEnteredNumberText');
+    });
+    _setControllerText();
   }
 
   @override
@@ -450,11 +466,15 @@ class _PetAddScreenState extends State<PetAddScreen> {
                         ),
                         if (image != null)
                           Positioned(
+                            top: 0.67 * 184,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
                             child: Image.file(
                               File(image!.path),
-                              width: 184,
-                              height: 184,
-                              fit: BoxFit.fill, // 이미지를 완전히 채우도록 설정
+                              width: 118,
+                              height: 118,
+                              fit: BoxFit.cover, // 이미지를 완전히 채우도록 설정
                             ),
                           ),
                         // 디폴트 이미지
@@ -612,6 +632,7 @@ class _PetAddScreenState extends State<PetAddScreen> {
                 SizedBox(
                   height: 12,
                 ),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -865,35 +886,44 @@ class _PetAddScreenState extends State<PetAddScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: TextField(
-                                controller: _controller,
-                                style: TextStyle(fontSize: 20),
-                                readOnly: false,
-                                onTap: () {
-                                  // 필드를 터치할 때 실행할 동작 정의
+                                child: TextField(
+                              controller: _controller,
+style: TextStyle(fontSize: 20),readOnly: false,onTap: isRandomMode?()=>_randomTap():null,onChanged: isRandomMode?null:(value)=>_userNumChange(value),
+/*                              TextEditingController(
+                                  text: isRandomMode
+                                      ? randomNumberText
+                                      : userEnteredNumberText),
+                              style: TextStyle(fontSize: 20),
+                              readOnly: false,
+
+                              onTap: isRandomMode ? () => _randomTap() : null,
+                              onChanged: isRandomMode
+                                  ? null
+                                  : (value) => _userNumChange(value),*/
+
+/*                                 onTap: () {
+                                    // 필드를 터치할 때 실행할 동작 정의
+                                    setState(() {
+                                      randomNumberText = '';
+                                      userEnteredNumberText = '';
+                                      userEnteredNumberHistory = '';
+                                      randomNumberHistory = '';
+                                      print('object:$userEnteredNumberText');
+                                    });
+                                  },*/
+                               /*onChanged: (value){
                                   setState(() {
-                                    randomNumberText = '';
-                                    userEnteredNumberText = '';
+                                    userEnteredNumberText =value;
+                                    randomNumberText='';
                                     userEnteredNumberHistory = '';
                                     randomNumberHistory = '';
-                                    _setControllerText();
-                                    print('object:$userEnteredNumberText');
                                   });
-                                },
-                                onChanged: (value) {
-                                  setState(() {
-                                    userEnteredNumberText = value;
-                                    randomNumberText = '';
-                                    userEnteredNumberHistory = '';
-                                    randomNumberHistory = '';
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  hintText: '번호입력',
-                                  border: InputBorder.none,
-                                ),
+                                },*/
+                              decoration: InputDecoration(
+                                hintText: '번호입력',
+                                border: InputBorder.none,
                               ),
-                            ),
+                            )),
                           ],
                         ),
                         decoration: BoxDecoration(
@@ -921,7 +951,6 @@ class _PetAddScreenState extends State<PetAddScreen> {
                                 randomNumberText =
                                     PetModel().generateRandomNumber1();
                               });
-                              _setControllerText(); // 수정된 부분: 터치할 때 컨트롤러 텍스트 갱신
                               print('랜덤번호 생성: $randomNumberText');
                             },
                             child: Text(
@@ -974,11 +1003,12 @@ class _PetAddScreenState extends State<PetAddScreen> {
                               ),
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],
                 ),
+
                 SizedBox(
                   height: 10,
                 ),
@@ -990,38 +1020,14 @@ class _PetAddScreenState extends State<PetAddScreen> {
                         child: Text(
                           duplicateText,
                           style: TextStyle(
-                            color: isDuplicate ? Colors.blue : Colors.red,
+                            color: isDuplicate ? Colors.red : Color(0xFF45B0ED),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Stack(
-                  children: [
-                    Positioned(
-                        child: TextButton(
-                            style: TextButton.styleFrom(
-                                minimumSize: const Size.fromHeight(56),
-                                backgroundColor: Colors.grey,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.zero))),
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          HomeScreen(appUser: appUser)));
-                            },
-                            child: Container(
-                              child: Text(
-                                '스킵하기',
-                                style: TextStyle(color: Colors.white,
-                                fontSize: 18),
-                              ),
-                            ))),
-                  ],
                 ),
               ],
             ),

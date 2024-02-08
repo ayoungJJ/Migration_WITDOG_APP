@@ -43,6 +43,7 @@ class _MessageScreenState extends State<MessageScreen> {
       _messagesStream = supabase
           .from('messages')
           .stream(primaryKey: ['id'])
+          .eq('user_id', myUserId)
           .order('created_at')
           .map((maps) =>
           maps.map((map) => Message.fromMap(map: map, myUserId: myUserId))
